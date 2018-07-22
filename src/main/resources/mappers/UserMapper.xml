@@ -35,8 +35,8 @@
       update_time)
     values (#{id,jdbcType=INTEGER}, #{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, 
       #{email,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR}, #{question,jdbcType=VARCHAR}, 
-      #{answer,jdbcType=VARCHAR}, #{role,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP})
+      #{answer,jdbcType=VARCHAR}, #{role,jdbcType=INTEGER}, now(),
+      now())
   </insert>
   <insert id="insertSelective" parameterType="com.mmall.pojo.User" >
     insert into mmall_user
@@ -98,10 +98,10 @@
         #{role,jdbcType=INTEGER},
       </if>
       <if test="createTime != null" >
-        #{createTime,jdbcType=TIMESTAMP},
+        now(),
       </if>
       <if test="updateTime != null" >
-        #{updateTime,jdbcType=TIMESTAMP},
+        now(),
       </if>
     </trim>
   </insert>
@@ -133,7 +133,7 @@
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
       <if test="updateTime != null" >
-        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        update_time = now(),
       </if>
     </set>
     where id = #{id,jdbcType=INTEGER}
@@ -148,7 +148,68 @@
       answer = #{answer,jdbcType=VARCHAR},
       role = #{role,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+      update_time = now()
     where id = #{id,jdbcType=INTEGER}
   </update>
+
+  <select id="checkUsername"  resultType="int" parameterType="string">
+    SELECT count(1) from mmall_user
+    where username = #{username}
+  </select>
+
+  <select id="checkEmail"  resultType="int" parameterType="string">
+    SELECT count(1) from mmall_user
+    where email = #{email}
+  </select>
+
+  <select id="selectLogin" resultMap="BaseResultMap" parameterType="map">
+    SELECT
+    --*这样真的不好，因为一个表说不定很多人在用，随着时间发展会越来越大而实际很多东西都是我不需要的，养成良好的要什么查什么
+    <include refid="Base_Column_List" />
+    from mmall_user
+    where username = #{username}
+    and password = #{password}
+  </select>
+
+  <select id="selectQuestionByUsername" resultType="string" parameterType="string">
+    SELECT
+      question
+    from mmall_user
+    WHERE username = #{username}
+
+  </select>
+
+
+  <select id="checkAnswer" resultType="int" parameterType="map">
+  --多个参数时，parameterType用map,返回问题的数量即可
+  SELECT
+    count(1)
+    from mmall_user
+    WHERE username = #{username}
+    and question = #{question}
+    and anwser = #{anwser}
+  </select>
+  
+  <update id="updatePasswordByUsername" parameterType="map">
+    UPDATE mmall_user
+    SET password = #{passwordNew}, update_time = now()
+    where username = #{username}
+  </update>
+
+  <select id="checkPassword" resultType="int" parameterType="map">
+    SELECT
+    count(1)
+    FROM mmall_user
+    where id = #{userId}
+    and password = #{password}
+  </select>
+  
+  <select id="checkEmailByUserId" resultType="int" parameterType="map">
+    SELECT
+    count(1)
+    from mmall_user
+    WHERE email = #{email}
+    and id != #{userId}
+
+  </select>
 </mapper>
